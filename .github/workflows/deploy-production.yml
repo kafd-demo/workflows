@@ -1,9 +1,9 @@
-name: Promote to STAGING
+name: Promote to PRODUCTION
 
 on:
   workflow_dispatch:
   push:
-    branches: [ "test" ]
+    branches: [ "staging" ]
   
 
 jobs:
