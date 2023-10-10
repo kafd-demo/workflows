@@ -22,7 +22,9 @@ jobs:
       sourceEnv: ${{ inputs.sourceEnvironment }}
     steps:
       - id: facts
-        run: echo "imageSha=$(cat overlays/$sourceEnv/kustomization.yaml | grep newTag | sed 's/^.*: //g')" >> "$GITHUB_OUTPUT"
+        run: |
+          export imageSha=$(cat overlays/$sourceEnv/kustomization.yaml | grep newTag | sed 's/^.*: //g')
+          echo "imageSha=$imageSha" >> "$GITHUB_OUTPUT"
 
   perform:
     name: Promote ${{ needs.gather.outputs.imageSha }} to ${{ inputs.targetEnvironment }}
