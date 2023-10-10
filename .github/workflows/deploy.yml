@@ -25,7 +25,7 @@ jobs:
       - gather
     env:
       imageSha: ${{needs.gather.outputs.imageSha}}
-      targetEnv: ${{ inputs.username }}
+      targetEnv: ${{ inputs.targetEnvironment }}
     environment: ${{ inputs.targetEnvironment }}
     runs-on: ubuntu-20.04
     steps:
