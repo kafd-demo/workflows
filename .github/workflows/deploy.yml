@@ -11,6 +11,10 @@ on:
         description: 'Target Environment'
         required: true
         type: string
+    secrets:
+      GITOPS_PAT:
+        description: 'GitOps Token'
+        required: true
   
 jobs:
   gather:
