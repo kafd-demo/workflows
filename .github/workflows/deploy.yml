@@ -3,21 +3,26 @@ name: Deploy via GitOps Promotion
 on:
   workflow_call:
     inputs:
+      sourceEnvironment:
+        description: 'Source Environment'
+        required: true
+        type: string
       targetEnvironment:
         description: 'Target Environment'
         required: true
         type: string
   
 jobs:
-
   gather:
     name: Gather Promotion Facts
     runs-on: ubuntu-20.04
     outputs:
       imageSha: ${{ steps.facts.outputs.imageSha }}
+    env:
+      sourceEnv: ${{ inputs.sourceEnvironment }}
     steps:
       - id: facts
-        run: echo "imageSha=$(echo $GITHUB_SHA | cut -c1-7)" >> "$GITHUB_OUTPUT"
+        run: echo "imageSha=$(cat overlays/$sourceEnv/kustomization.yaml | grep newTag | sed 's/^.*: //g')" >> "$GITHUB_OUTPUT"
 
   perform:
     name: Promote ${{ needs.gather.outputs.imageSha }} to ${{ inputs.targetEnvironment }}
@@ -30,11 +35,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: imranismail/setup-kustomize@v2
-      - uses: actions/checkout@v4.1.0
-        with:
-          ref: ${{ inputs.targetEnvironment }}
       - run: |
-          cd base/
+          cd overlays/$targetEnv
           kustomize edit set image app:$imageSha
           cd ..
           git config user.email "automated@redhat.com"
