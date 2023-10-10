@@ -23,6 +23,7 @@ jobs:
     steps:
       - id: facts
         run: |
+          ls
           export imageSha=$(cat overlays/$sourceEnv/kustomization.yaml | grep newTag | sed 's/^.*: //g')
           echo "imageSha=$imageSha" >> "$GITHUB_OUTPUT"
 
