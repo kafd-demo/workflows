@@ -1,0 +1,44 @@
+name: Deploy via GitOps Promotion
+
+on:
+  workflow_call:
+    inputs:
+      targetEnvironment:
+        description: 'Target Environment'
+        required: true
+        type: string
+  
+jobs:
+
+  gather:
+    name: Gather Promotion Facts
+    runs-on: ubuntu-20.04
+    outputs:
+      imageSha: ${{ steps.facts.outputs.imageSha }}
+    steps:
+      - id: facts
+        run: echo "imageSha=$(echo $GITHUB_SHA | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+  perform:
+    name: Promote ${{ needs.gather.outputs.imageSha }} to ${{ inputs.targetEnvironment }}
+    needs:
+      - gather
+    env:
+      imageSha: ${{needs.gather.outputs.imageSha}}
+      targetEnv: ${{ inputs.username }}
+    environment: ${{ inputs.targetEnvironment }}
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: imranismail/setup-kustomize@v2
+      - uses: actions/checkout@v4.1.0
+        with:
+          ref: ${{ inputs.targetEnvironment }}
+      - run: |
+          cd base/
+          kustomize edit set image app:$imageSha
+          cd ..
+          git config user.email "automated@redhat.com"
+          git config user.name "Automated Pipeline"
+          git add .
+          git commit -m "Updated ${targetEnv} Image Tag to ${imageSha}"
+          git push
